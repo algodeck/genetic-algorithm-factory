@@ -1,98 +1,108 @@
-import { update } from "./render.js";
+import SVG from 'svg.js'
+import GA from './ga.js'
 
-const population = [];
+const drawPotato = (contextEl, gene, score, scale = 1.0) => {
+  contextEl.innerHTML = ''
+  const size = 512
+  const draw = SVG(contextEl)
+    .size(size, size)
+    .viewbox(`0 0 ${size} ${size}`)
+    .group()
 
-// {
-//   genes: [0.1, 0.2 ...],
-//   score: 0,
-// }
+  const [
+    bodyWidth,
+    bodyHeight,
+    eyeLeftX,
+    eyeRightX,
+    eyeY,
+    eyeRadius,
+    mouthX,
+    mouthY,
+    mouthHeight,
+    mouthWidth
+  ] = [
+    gene.bodyWidth * 512,
+    gene.bodyHeight * 512,
+    gene.eyeLeftX * 256,
+    gene.eyeRightX * 256 + 256,
+    gene.eyeY * 512,
+    gene.eyeRadius * 80,
+    gene.mouthX * 512,
+    gene.mouthY * 512,
+    gene.mouthHeight * 60,
+    gene.mouthWidth * 100
+  ]
 
-const phenotypeMap = {
-  bodyWidth: 0,
-  bodyHeight: 1,
-  eyeLeftX: 2,
-  eyeRightX: 3,
-  eyeY: 4,
-  mouthX: 5,
-  mouthY: 6,
-  mouthWidth: 7,
-  mouthHeight: 8,
-  eyeRadius: 9
-};
+  draw.rect(512, 512)
+    .fill('white')
+    .move(0, 0)
 
-const genotypeToPhenotype = potato => {
-  const phenotype = {};
-  for (const [key, value] of Object.entries(phenotypeMap)) {
-    phenotype[key] = potato.genes[value];
-  }
+  draw.ellipse(bodyWidth, bodyHeight)
+    .fill('#fdae61')
+    .move((512 - bodyWidth) / 2, (512 - bodyHeight) / 2)
 
-  return {
-    phenotype,
-    score: potato.score
-  };
-};
+  draw.circle(eyeRadius)
+    .fill('#2b83ba')
+    .move(eyeLeftX, eyeY)
 
-const randomPotato = () => {
-  const genes = [];
-  for (let i in phenotypeMap) {
-    genes.push(Math.random());
-  }
-  return {
-    genes,
-    score: 1
-  };
-};
+  draw.circle(eyeRadius)
+    .fill('#2b83ba')
+    .move(eyeRightX, eyeY)
 
-const babyMaking = potato => {
-  const mommy = potato;
+  draw.ellipse(mouthWidth, mouthHeight)
+    .fill('#d7191c')
+    .move(mouthX, mouthY)
 
-  const sorted = population.slice();
-  sorted.sort((a, b) => a.score < b.score);
+  draw.text(`${score.toFixed(1)}`)
+    .attr('font-size', 40)
+    .fill('black')
+    .move(14, 14)
+}
 
-  const daddy = sorted[0];
+const drawGeneration = (generation, index) => {
+  const elem = document.querySelector('.generation__list')
+  const parent = document.createElement('div')
+  parent.setAttribute('data-generation', index)
+  elem.appendChild(parent)
+  drawPotato(parent, generation, generation.score, 0.5)
+}
 
-  const baby = randomPotato();
+const update = generations => {
+  const mainEl = document.getElementById('current')
+  drawPotato(mainEl, generations[0], generations[0].score)
+  const listEl = document.querySelector('.generation__list')
+  listEl.innerHTML = ''
+  generations.map(drawGeneration)
+}
 
-  for (let i in baby.genes) {
-    // Crossover
-    const crossoverFlip = Math.random();
-    if (crossoverFlip < 0.5) {
-      baby.genes[i] = mommy.genes[i];
-    } else {
-      baby.genes[i] = daddy.genes[i];
-    }
+const variables = [
+  'bodyWidth',
+  'bodyHeight',
+  'eyeLeftX',
+  'eyeRightX',
+  'eyeY',
+  'mouthX',
+  'mouthY',
+  'mouthWidth',
+  'mouthHeight',
+  'eyeRadius'
+]
 
-    // Mutation
-    const mutationFlip = Math.random();
-    if (mutationFlip < 0.2) {
-      baby.genes[i] = Math.random();
-    }
-  }
+const ga = new GA(variables)
 
-  baby.score = (mommy.score + daddy.score) / 2;
+ga.bigBang()
 
-  population.unshift(baby);
-};
-
-const bigBang = () => {
-  population.push(randomPotato());
-};
-
-const updateGraphics = () => {
-  update(population.map(genotypeToPhenotype));
-};
-
-const generationListEl = document.querySelector(".generation__list");
-generationListEl.addEventListener("click", e => {
+const generationListEl = document.querySelector('.generation__list')
+generationListEl.addEventListener('click', e => {
   if (e.target.dataset.generation) {
-    const generation = population[window.parseInt(e.target.dataset.generation)];
-    generation.score += 1;
-    babyMaking(generation);
-    updateGraphics();
+    const generation = ga.population[window.parseInt(e.target.dataset.generation)]
+    generation.score += 1
+    const sorted = ga.population.slice()
+    sorted.sort((a, b) => a.score < b.score)
+    const parentB = sorted[0]
+    ga.babyMaking(generation, parentB)
+    update(ga.population)
   }
-});
+})
 
-bigBang();
-bigBang();
-
-updateGraphics();
+update(ga.population)
