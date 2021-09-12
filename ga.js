@@ -1,55 +1,57 @@
 class Citizen {
-  constructor (variables) {
-    this.variables = variables
+  constructor (phenotypeVariables) {
     this.score = 0
-    this.genes = variables.map(() => Math.random())
+    this.genes = phenotypeVariables.map(() => Math.random())
 
-    variables.forEach((propertyName) => {
+    // The following code allows to access easily the genes by using the
+    // variable name instead of an array index.
+    phenotypeVariables.forEach((propertyName) => {
       Object.defineProperty(
-        this, propertyName, { get: () => this.genes[this.variables.indexOf(propertyName)] }
+        this,
+        propertyName,
+        {
+          get: () => this.genes[phenotypeVariables.indexOf(propertyName)]
+        }
       )
     })
   }
 }
 
 export default class GA {
-  constructor (variables, crossOverRate = 0.5, mutationRate = 0.2) {
-    this.variables = variables
+  constructor (phenotypeVariables) {
+    this.phenotypeVariables = phenotypeVariables
     this.population = []
-    this.crossOverRate = crossOverRate
-    this.mutationRate = mutationRate
   }
 
   bigBang () {
-    this.population.push(new Citizen(this.variables))
-    this.population.push(new Citizen(this.variables))
+    this.population.push(new Citizen(this.phenotypeVariables))
+    this.population.push(new Citizen(this.phenotypeVariables))
   }
 
-  babyMaking (parentA, parentB) {
-    const baby = Citizen.random(this.variables)
+  babyMaking (parentA, parentB, crossOverRate = 0.5, mutationRate = 0.2) {
+    // Create a baby
+    const baby = new Citizen(this.phenotypeVariables)
 
     for (const i in baby.genes) {
       // Crossover
       const crossoverFlip = Math.random()
-      console.log(crossoverFlip, this.crossOverRate)
-      if (crossoverFlip < this.crossOverRate) {
-        baby.genes[i] = parentA.genes[i]
-        console.log('from selected')
+      if (crossoverFlip < crossOverRate) {
+        baby.genes[i] = parentA.genes[i] // From parent A
       } else {
-        baby.genes[i] = parentB.genes[i]
-        console.log('from other')
+        baby.genes[i] = parentB.genes[i] // From parent B
       }
 
       // Mutation
       const mutationFlip = Math.random()
-      if (mutationFlip < this.mutationRate) {
-        baby.genes[i] = Math.random()
+      if (mutationFlip < mutationRate) {
+        baby.genes[i] = Math.random() // Mutate
       }
     }
 
-    baby.score = (parentA.score * this.crossOverRate) + (parentB.score * (1 - this.crossOverRate))
-    console.log('a', parentA.score, 'b', parentB.score, 'baby', baby.score)
+    // Give the baby a weighted score
+    baby.score = (parentA.score * crossOverRate) + (parentB.score * (1 - crossOverRate))
 
+    // Add to the population
     this.population.unshift(baby)
   }
 }

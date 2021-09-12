@@ -1,7 +1,8 @@
 import SVG from 'svg.js'
 import GA from './ga.js'
+import Artboard from './art.js'
 
-const drawPotato = (contextEl, gene, score, scale = 1.0) => {
+const draw = (contextEl, citizen) => {
   contextEl.innerHTML = ''
   const size = 512
   const draw = SVG(contextEl)
@@ -21,16 +22,16 @@ const drawPotato = (contextEl, gene, score, scale = 1.0) => {
     mouthHeight,
     mouthWidth
   ] = [
-    gene.bodyWidth * 512,
-    gene.bodyHeight * 512,
-    gene.eyeLeftX * 256,
-    gene.eyeRightX * 256 + 256,
-    gene.eyeY * 512,
-    gene.eyeRadius * 80,
-    gene.mouthX * 512,
-    gene.mouthY * 512,
-    gene.mouthHeight * 60,
-    gene.mouthWidth * 100
+    citizen.bodyWidth * 512,
+    citizen.bodyHeight * 512,
+    citizen.eyeLeftX * 256,
+    citizen.eyeRightX * 256 + 256,
+    citizen.eyeY * 512,
+    citizen.eyeRadius * 80,
+    citizen.mouthX * 512,
+    citizen.mouthY * 512,
+    citizen.mouthHeight * 60,
+    citizen.mouthWidth * 100
   ]
 
   draw.rect(512, 512)
@@ -52,27 +53,6 @@ const drawPotato = (contextEl, gene, score, scale = 1.0) => {
   draw.ellipse(mouthWidth, mouthHeight)
     .fill('#d7191c')
     .move(mouthX, mouthY)
-
-  draw.text(`${score.toFixed(1)}`)
-    .attr('font-size', 40)
-    .fill('black')
-    .move(14, 14)
-}
-
-const drawGeneration = (generation, index) => {
-  const elem = document.querySelector('.generation__list')
-  const parent = document.createElement('div')
-  parent.setAttribute('data-generation', index)
-  elem.appendChild(parent)
-  drawPotato(parent, generation, generation.score, 0.5)
-}
-
-const update = generations => {
-  const mainEl = document.getElementById('current')
-  drawPotato(mainEl, generations[0], generations[0].score)
-  const listEl = document.querySelector('.generation__list')
-  listEl.innerHTML = ''
-  generations.map(drawGeneration)
 }
 
 const variables = [
@@ -89,20 +69,17 @@ const variables = [
 ]
 
 const ga = new GA(variables)
-
 ga.bigBang()
 
-const generationListEl = document.querySelector('.generation__list')
-generationListEl.addEventListener('click', e => {
-  if (e.target.dataset.generation) {
-    const generation = ga.population[window.parseInt(e.target.dataset.generation)]
-    generation.score += 1
-    const sorted = ga.population.slice()
-    sorted.sort((a, b) => a.score < b.score)
-    const parentB = sorted[0]
-    ga.babyMaking(generation, parentB)
-    update(ga.population)
-  }
+const artboard = new Artboard(ga, draw)
+
+artboard.addEventListener('vote', (event) => {
+  const citizen = event.detail
+  const sorted = ga.population.slice()
+  sorted.sort((a, b) => a.score < b.score)
+  const parentB = sorted[0]
+  ga.babyMaking(citizen, parentB, 0.5, 0.2)
+  artboard.update()
 })
 
-update(ga.population)
+window.addEventListener('load', artboard.init)
