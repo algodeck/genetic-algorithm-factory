@@ -1,20 +1,30 @@
+@import 'node_modules/modern-normalize/modern-normalize.css';
+
 body {
+  background-color: rgb(231, 228, 211);
   margin: 0;
   min-height: 100vh;
   padding: 0;
 }
 
 .bench {
-  background-color: #fafafa;
   display: flex;
-  height: 100%;
+  height: 100vh;
+  padding: 16px;
   width: 100%;
 }
 
-.population__list {
-  background-color: #fafafa;
+.population {
   flex-basis: 40%;
   overflow: scroll;
+  padding-right: 21px;
+}
+
+.population__list {
+  display: grid;
+  gap: 1rem;
+  grid-auto-rows: min-content;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .population__list svg {
@@ -26,35 +36,55 @@ body {
 
 .generation__current {
   align-items: center;
-  background-color: #fafafa;
+  background-color: #fafafabb;
   display: flex;
   flex-basis: 100%;
-  height: 100vh;
+  flex-direction: column;
   justify-content: center;
+}
+
+.generation__current svg {
+  height: auto;
+  width: 100%;
 }
 
 .population__citizen {
   cursor: pointer;
-  margin: 22px;
   position: relative;
 }
 
 .population__citizen:hover {
-  box-shadow: rgb(85, 91, 255) 0px 0px 0px 3px, rgb(31, 193, 27) 0px 0px 0px 6px, rgb(255, 217, 19) 0px 0px 0px 9px, rgb(255, 156, 85) 0px 0px 0px 12px, rgb(255, 85, 85) 0px 0px 0px 15px;
+  border: 1px solid black;
+  box-shadow: rgb(244, 201, 62) 8px 8px 0px 0px;
 }
 
 .population__citizen::before {
-  border-radius: 100%;
-  border: 1px dashed;
+  color: rgba(9, 38, 149, 0.9);
   content: attr(data-score);
   font-size: 22px;
   font-weight: 900;
   height: 40px;
   line-height: 40px;
   overflow: hidden;
-  position: absolute;
   text-align: center;
   text-overflow: clip;
   white-space: nowrap;
   width: 40px;
+  position: relative;
+  right: 0;
+}
+
+.export-button {
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 800;
+  margin: 16px;
+  padding: 8px;
+}
+
+@media (max-width: 768px) {
+  .bench {
+    flex-direction: column-reverse;
+    height: auto;
+  }
 }

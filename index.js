@@ -1,71 +1,82 @@
-import SVG from 'svg.js'
+import { SVG } from '@svgdotjs/svg.js'
 import GA from './ga.js'
 import Artboard from './art.js'
 
+const remap = (n, start1, stop1, start2, stop2) => (
+  (((n - start1) / (stop1 - start1)) * (stop2 - start2)) + start2
+)
+
 const draw = (contextEl, citizen) => {
   contextEl.innerHTML = ''
-  const size = 512
-  const draw = SVG(contextEl)
+  const size = 600
+  const draw = SVG().addTo(contextEl)
     .size(size, size)
     .viewbox(`0 0 ${size} ${size}`)
     .group()
 
   const [
-    bodyWidth,
-    bodyHeight,
-    eyeLeftX,
-    eyeRightX,
-    eyeY,
     eyeRadius,
-    mouthX,
-    mouthY,
-    mouthHeight,
-    mouthWidth
+    eyeDistance,
+    eyebrowDistance,
+    eyebrowHeight,
+    noseHeight,
+    mouthRadius
   ] = [
-    citizen.bodyWidth * 512,
-    citizen.bodyHeight * 512,
-    citizen.eyeLeftX * 256,
-    citizen.eyeRightX * 256 + 256,
-    citizen.eyeY * 512,
-    citizen.eyeRadius * 80,
-    citizen.mouthX * 512,
-    citizen.mouthY * 512,
-    citizen.mouthHeight * 60,
-    citizen.mouthWidth * 100
+    remap(citizen.eyeRadius, 0, 1, 10, 50),
+    remap(citizen.eyeDistance, 0, 1, 100, 600),
+    remap(citizen.eyebrowDistance, 0, 1, 0, 100),
+    remap(citizen.eyebrowHeight, 0, 1, 10, 40),
+    remap(citizen.noseHeight, 0, 1, 100, 400),
+    remap(citizen.mouthRadius, 0, 1, 10, 200)
   ]
 
-  draw.rect(512, 512)
+  draw.rect(size, size)
     .fill('white')
     .move(0, 0)
 
-  draw.ellipse(bodyWidth, bodyHeight)
-    .fill('#fdae61')
-    .move((512 - bodyWidth) / 2, (512 - bodyHeight) / 2)
+  for (let x = 0; x <= size; x += 100) {
+    draw.line(x, 0, x, size)
+      .stroke({ width: 1, color: 'black' })
+    draw.line(0, x, size, x)
+      .stroke({ width: 1, color: 'black' })
+  }
 
-  draw.circle(eyeRadius)
-    .fill('#2b83ba')
-    .move(eyeLeftX, eyeY)
+  const canvasMiddle = size / 2
 
-  draw.circle(eyeRadius)
-    .fill('#2b83ba')
-    .move(eyeRightX, eyeY)
+  const blue = 'rgb(0, 18, 51)'
+  const eyeLeft = canvasMiddle - eyeRadius - (eyeDistance / 2)
+  const eyeRight = canvasMiddle - eyeRadius + (eyeDistance / 2)
 
-  draw.ellipse(mouthWidth, mouthHeight)
-    .fill('#d7191c')
-    .move(mouthX, mouthY)
+  draw.ellipse(2 * eyeRadius, 2 * eyeRadius)
+    .fill(blue)
+    .move(eyeLeft, 100)
+
+  draw.ellipse(2 * eyeRadius, 2 * eyeRadius)
+    .fill(blue)
+    .move(eyeRight, 100)
+
+  draw.ellipse(2 * mouthRadius, 2 * mouthRadius)
+    .fill('rgb(233, 41, 22)')
+    .move(canvasMiddle - mouthRadius, 500 - mouthRadius)
+    .css({ 'mix-blend-mode': 'multiply' })
+
+  draw.polyline(`${canvasMiddle + eyeRadius - eyeDistance / 2},100 ${canvasMiddle - eyeDistance / 2},${100 + noseHeight} ${canvasMiddle - eyeRadius + eyeDistance / 2},${100 + noseHeight}`)
+    .fill('none').stroke({ width: 12, color: blue })
+
+  draw.line(`${eyeLeft}`, `${eyebrowDistance}`, `${eyeLeft + 2 * eyeRadius}`, `${eyebrowDistance}`)
+    .fill('none').stroke({ width: eyebrowHeight, color: blue })
+
+  draw.line(`${eyeRight}`, `${eyebrowDistance}`, `${eyeRight + 2 * eyeRadius}`, `${eyebrowDistance}`)
+    .fill('none').stroke({ width: eyebrowHeight, color: blue })
 }
 
 const variables = [
-  'bodyWidth',
-  'bodyHeight',
-  'eyeLeftX',
-  'eyeRightX',
-  'eyeY',
-  'mouthX',
-  'mouthY',
-  'mouthWidth',
-  'mouthHeight',
-  'eyeRadius'
+  'eyeRadius',
+  'eyeDistance',
+  'eyebrowDistance',
+  'eyebrowHeight',
+  'noseHeight',
+  'mouthRadius'
 ]
 
 const ga = new GA(variables)
@@ -78,7 +89,7 @@ artboard.addEventListener('vote', (event) => {
   const sorted = ga.population.slice()
   sorted.sort((a, b) => a.score < b.score)
   const parentB = sorted[0]
-  ga.babyMaking(citizen, parentB, 0.5, 0.2)
+  ga.babyMaking(citizen, parentB, 0.8, 0.2)
   artboard.update()
 })
 
