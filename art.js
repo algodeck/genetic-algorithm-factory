@@ -1,3 +1,5 @@
+import EventTarget from '@ungap/event-target'
+
 const populationListElClassName = '.population__list'
 const currentElClassName = '.generation__current__canvas'
 
@@ -45,14 +47,15 @@ export default class Artboard extends EventTarget {
 
   exportImage () {
     const svgElement = document.querySelector(`${currentElClassName} svg`)
+    const outerHTML = svgElement.outerHTML
     const width = Number(svgElement.getAttribute('width'))
     const height = Number(svgElement.getAttribute('height'))
-    const clonedSvgElement = svgElement.cloneNode(true)
-    const outerHTML = clonedSvgElement.outerHTML
-    const blob = new Blob([outerHTML], { type: 'image/svg+xml;charset=utf-8' })
-    const blobURL = URL.createObjectURL(blob)
+    // const blob = new Blob([outerHTML], { type: 'image/svg+xml;charset=utf-8' })
+    // const blobURL = vendorURL.createObjectURL(blob)
+    const blobURL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(outerHTML);
     const image = new Image()
-    image.onload = () => {
+
+    image.addEventListener('load', () => {
       const canvas = document.createElement('canvas')
       canvas.width = 2 * width
       canvas.height = 2 * height
@@ -66,7 +69,8 @@ export default class Artboard extends EventTarget {
       link.href = dataURL
       link.click()
       link.remove()
-    }
+    })
+
     image.src = blobURL
   }
 }
