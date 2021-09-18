@@ -1,13 +1,11 @@
-import EventTarget from '@ungap/event-target'
-
 const populationListElClassName = '.population__list'
 const currentElClassName = '.generation__current__canvas'
 
-export default class Artboard extends EventTarget {
-  constructor (ga, render) {
-    super()
+export default class Artboard {
+  constructor (ga, render, evolve) {
     this.ga = ga
-    this.render = render
+    this.renderCallback = render
+    this.evolveCallback = evolve
     this.init = this.init.bind(this)
     this.update = this.update.bind(this)
     this.exportImage = this.exportImage.bind(this)
@@ -20,8 +18,8 @@ export default class Artboard extends EventTarget {
         const citizenId = window.parseInt(event.target.dataset.generation)
         const citizen = this.ga.population[citizenId]
         citizen.score += 1
-        const updateEvent = new CustomEvent('vote', { detail: citizen })
-        this.dispatchEvent(updateEvent)
+        this.evolveCallback(citizen)
+        this.update()
       }
     })
     this.update()
@@ -33,7 +31,8 @@ export default class Artboard extends EventTarget {
   update () {
     const mainEl = document.querySelector(currentElClassName)
     const listEl = document.querySelector(populationListElClassName)
-    this.render(mainEl, this.ga.population[0])
+    mainEl.innerHTML = ''
+    this.renderCallback(mainEl, this.ga.population[0])
     listEl.innerHTML = ''
     this.ga.population.forEach((citizen, index) => {
       const citizenEl = document.createElement('div')
@@ -41,7 +40,7 @@ export default class Artboard extends EventTarget {
       citizenEl.setAttribute('data-score', citizen.score.toFixed(2))
       citizenEl.classList.add('population__citizen')
       listEl.appendChild(citizenEl)
-      this.render(citizenEl, citizen)
+      this.renderCallback(citizenEl, citizen)
     })
   }
 

@@ -1,6 +1,6 @@
 import { SVG } from '@svgdotjs/svg.js'
 import GA from './ga.js'
-import Artboard from './art.js'
+import Artboard from './artboard.js'
 import './index.css'
 
 const remap = (n, start1, stop1, start2, stop2) => (
@@ -8,12 +8,22 @@ const remap = (n, start1, stop1, start2, stop2) => (
 )
 
 const draw = (contextEl, citizen) => {
-  contextEl.innerHTML = ''
   const size = 600
-  const draw = SVG().addTo(contextEl)
+  const canvas = SVG().addTo(contextEl)
     .size(size, size)
-    .viewbox(`0 0 ${size} ${size}`)
+    .viewbox(0, 0, size, size)
     .group()
+
+  canvas.rect(size, size)
+    .fill('rgb(231, 228, 211)')
+    .move(0, 0)
+
+  for (let x = 0; x <= size; x += 100) {
+    canvas.line(x, 0, x, size)
+      .stroke({ width: 1, color: 'black', opacity: 0.5 })
+    canvas.line(0, x, size, x)
+      .stroke({ width: 1, color: 'black', opacity: 0.5 })
+  }
 
   const [
     eyeRadius,
@@ -31,44 +41,47 @@ const draw = (contextEl, citizen) => {
     remap(citizen.mouthRadius, 0, 1, 10, 200)
   ]
 
-  draw.rect(size, size)
-    .fill('white')
-    .move(0, 0)
-
-  for (let x = 0; x <= size; x += 100) {
-    draw.line(x, 0, x, size)
-      .stroke({ width: 1, color: 'black' })
-    draw.line(0, x, size, x)
-      .stroke({ width: 1, color: 'black' })
-  }
-
   const canvasMiddle = size / 2
-
   const blue = 'rgb(0, 18, 51)'
+  const red = 'rgb(233, 41, 22)'
   const eyeLeft = canvasMiddle - eyeRadius - (eyeDistance / 2)
   const eyeRight = canvasMiddle - eyeRadius + (eyeDistance / 2)
 
-  draw.ellipse(2 * eyeRadius, 2 * eyeRadius)
+  // Draw the left eye
+  canvas.ellipse(2 * eyeRadius, 2 * eyeRadius)
     .fill(blue)
     .move(eyeLeft, 100)
 
-  draw.ellipse(2 * eyeRadius, 2 * eyeRadius)
+  // Draw the left eyebrow
+  canvas.line([
+    [eyeLeft, eyebrowDistance], [eyeLeft + 2 * eyeRadius, eyebrowDistance]
+  ]).fill('none').stroke({ width: eyebrowHeight, color: blue })
+
+  // Draw the right eyebrow
+  canvas.line([
+    [eyeRight, eyebrowDistance], [eyeRight + 2 * eyeRadius, eyebrowDistance]
+  ]).fill('none').stroke({ width: eyebrowHeight, color: blue })
+
+  // Draw the right eye
+  canvas.ellipse(2 * eyeRadius, 2 * eyeRadius)
     .fill(blue)
     .move(eyeRight, 100)
 
-  draw.ellipse(2 * mouthRadius, 2 * mouthRadius)
-    .fill('rgb(233, 41, 22)')
+  // Draw the mouth
+  canvas.ellipse(2 * mouthRadius, 2 * mouthRadius)
+    .fill(red)
     .move(canvasMiddle - mouthRadius, 500 - mouthRadius)
     .css({ 'mix-blend-mode': 'multiply' })
 
-  draw.polyline(`${canvasMiddle + eyeRadius - eyeDistance / 2},100 ${canvasMiddle - eyeDistance / 2},${100 + noseHeight} ${canvasMiddle - eyeRadius + eyeDistance / 2},${100 + noseHeight}`)
-    .fill('none').stroke({ width: 12, color: blue })
-
-  draw.line(`${eyeLeft}`, `${eyebrowDistance}`, `${eyeLeft + 2 * eyeRadius}`, `${eyebrowDistance}`)
-    .fill('none').stroke({ width: eyebrowHeight, color: blue })
-
-  draw.line(`${eyeRight}`, `${eyebrowDistance}`, `${eyeRight + 2 * eyeRadius}`, `${eyebrowDistance}`)
-    .fill('none').stroke({ width: eyebrowHeight, color: blue })
+  // Draw the nose
+  canvas.polyline([
+    // start at the corner of the left eye
+    [canvasMiddle + eyeRadius - eyeDistance / 2, 100],
+    // go to the left corner of the mouth
+    [canvasMiddle - eyeDistance / 2, 100 + noseHeight],
+    // end on the right corner of the mouth
+    [canvasMiddle - eyeRadius + eyeDistance / 2, 100 + noseHeight]
+  ]).fill('none').stroke({ width: 12, color: blue })
 }
 
 const variables = [
@@ -83,15 +96,12 @@ const variables = [
 const ga = new GA(variables)
 ga.bigBang()
 
-const artboard = new Artboard(ga, draw)
-
-artboard.addEventListener('vote', (event) => {
-  const citizen = event.detail
+const evolve = (parentA) => {
   const sorted = ga.population.slice()
   sorted.sort((a, b) => a.score < b.score)
   const parentB = sorted[0]
-  ga.babyMaking(citizen, parentB, 0.8, 0.2)
-  artboard.update()
-})
+  ga.babyMaking(parentA, parentB, 0.8, 0.2)
+}
 
+const artboard = new Artboard(ga, draw, evolve)
 window.addEventListener('load', artboard.init)
