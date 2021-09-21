@@ -51,7 +51,7 @@ export default class Artboard {
     const height = Number(svgElement.getAttribute('height'))
     // const blob = new Blob([outerHTML], { type: 'image/svg+xml;charset=utf-8' })
     // const blobURL = vendorURL.createObjectURL(blob)
-    const blobURL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(outerHTML);
+    const blobURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(outerHTML)
     const image = new Image()
 
     image.addEventListener('load', () => {

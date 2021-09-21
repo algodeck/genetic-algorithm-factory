@@ -6,14 +6,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npx eslint *.js",
-    "dev": "npx vite"
+    "dev": "npx vite",
+    "build": "npx vite build",
+    "build-component": "npx vite build -c component/vite.config.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@svgdotjs/svg.js": "^3.1.1",
-    "@ungap/event-target": "^0.2.3",
+    "lit": "^2.0.0-rc.4",
     "modern-normalize": "^1.1.0"
   },
   "devDependencies": {
