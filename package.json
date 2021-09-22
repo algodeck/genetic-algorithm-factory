@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@svgdotjs/svg.js": "^3.1.1",
-    "lit": "^2.0.0-rc.4",
+    "lit": "^2.0.0",
     "modern-normalize": "^1.1.0"
   },
   "devDependencies": {
@@ -24,6 +24,6 @@
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.0",
-    "vite": "^2.5.7"
+    "vite": "^2.5.10"
   }
 }
