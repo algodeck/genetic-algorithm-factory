@@ -12,5 +12,13 @@ Please meet oto and read the accompanying article on
 
 ```bash
 npm install
-npx run dev
+npm run dev
 ```
+
+## Files
+
+- The main genetic algorithm (GA) part is in [ga.js](ga.js)
+- The setup of the GA and how to draw things is in [index.js](index.js)
+
+Maybe try making a generative monster or a generative flower! Let me know if you
+created any fun projects with the code.
